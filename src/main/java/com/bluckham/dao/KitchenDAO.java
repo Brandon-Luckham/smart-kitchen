@@ -1,7 +1,7 @@
 package com.bluckham.dao;
 
-import com.bluckham.model.Blog;
-import com.bluckham.model.SavedRecipe;
+import com.bluckham.dto.Blog;
+import com.bluckham.dto.SavedRecipe;
 import org.jetbrains.annotations.NotNull;
 
 import java.security.NoSuchAlgorithmException;
@@ -38,7 +38,7 @@ public class KitchenDAO {
 
     public Blog getRandomRecipe() {
         var blogCount = 0;
-        List<Blog> blogList = new ArrayList<>();
+        List<Blog> blogDTOList = new ArrayList<>();
         Random rand = null;
         try {
             rand = SecureRandom.getInstance("SHA1PRNG");
@@ -53,7 +53,7 @@ public class KitchenDAO {
                 var blog = new Blog();
                 blog.setName(rs.getString("name"));
                 blog.setUrl(rs.getString("url"));
-                blogList.add(blog);
+                blogDTOList.add(blog);
                 blogCount++;
             }
 
@@ -61,7 +61,7 @@ public class KitchenDAO {
             logger.log(Level.SEVERE, sqlException.getMessage());
             System.exit(500);
         }
-        return blogList.get(rand.nextInt(blogCount));
+        return blogDTOList.get(rand.nextInt(blogCount));
     }
 
     public SavedRecipe getSpecificBlogRecipe(String blogName, String recipeName) {
@@ -89,7 +89,7 @@ public class KitchenDAO {
     }
 
     public List<SavedRecipe> retrieveFavoriteRecipes() {
-        List<SavedRecipe> savedRecipeList = new ArrayList<>();
+        List<SavedRecipe> savedRecipeDTOList = new ArrayList<>();
         try (PreparedStatement ps =
                      connection.prepareStatement("SELECT * FROM saved_recipes WHERE favorite = TRUE AND dislike = " +
                              "FALSE")) {
@@ -104,40 +104,40 @@ public class KitchenDAO {
                 savedRecipe.setDislike(rs.getBoolean("dislike"));
                 savedRecipe.setCategory(rs.getString("category"));
                 savedRecipe.setCookTime(rs.getString("cook_time"));
-                savedRecipeList.add(savedRecipe);
+                savedRecipeDTOList.add(savedRecipe);
             }
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, ex.getMessage());
             System.exit(500);
         }
-        return savedRecipeList;
+        return savedRecipeDTOList;
     }
 
-    public void setFavoriteRecipe(@NotNull SavedRecipe savedRecipe) {
+    public void setFavoriteRecipe(@NotNull SavedRecipe savedRecipeDTO) {
         try (PreparedStatement ps = connection.prepareStatement("SELECT TOP 1 FROM saved_recipes WHERE url = ?")) {
-            ps.setString(1, savedRecipe.getUrl());
+            ps.setString(1, savedRecipeDTO.getUrl());
             ResultSet rs = ps.executeQuery();
             if (rs.first())
-                updateFavorite(savedRecipe);
+                updateFavorite(savedRecipeDTO);
             else
-                insertNewFavorite(savedRecipe);
+                insertNewFavorite(savedRecipeDTO);
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, ex.getMessage());
             System.exit(500);
         }
     }
 
-    private void insertNewFavorite(@NotNull SavedRecipe savedRecipe) throws SQLException {
+    private void insertNewFavorite(@NotNull SavedRecipe savedRecipeDTO) throws SQLException {
         try (PreparedStatement insert = connection.prepareStatement("INSERT INTO saved_recipes (recipe_name, " +
                 "url, blog, favorite, dislike, category, cook_time) VALUES (?, ?, " +
                 "?, ?, ?, ?, ?")) {
-            insert.setString(1, savedRecipe.getRecipeName());
-            insert.setString(2, savedRecipe.getUrl());
-            insert.setString(3, savedRecipe.getBlog());
+            insert.setString(1, savedRecipeDTO.getRecipeName());
+            insert.setString(2, savedRecipeDTO.getUrl());
+            insert.setString(3, savedRecipeDTO.getBlog());
             insert.setBoolean(4, true);
             insert.setBoolean(5, false);
-            insert.setString(6, savedRecipe.getCategory());
-            insert.setString(7, savedRecipe.getCookTime());
+            insert.setString(6, savedRecipeDTO.getCategory());
+            insert.setString(7, savedRecipeDTO.getCookTime());
             insert.executeQuery();
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, "Insert Failed");
@@ -145,11 +145,11 @@ public class KitchenDAO {
         }
     }
 
-    private void updateFavorite(@NotNull SavedRecipe savedRecipe) throws SQLException {
+    private void updateFavorite(@NotNull SavedRecipe savedRecipeDTO) throws SQLException {
         try (PreparedStatement update =
                      connection.prepareStatement("UPDATE saved_recipes SET favorite = ? WHERE url = ?")) {
             update.setBoolean(1, true);
-            update.setString(2, savedRecipe.getUrl());
+            update.setString(2, savedRecipeDTO.getUrl());
             update.executeQuery();
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, "Update Failed");

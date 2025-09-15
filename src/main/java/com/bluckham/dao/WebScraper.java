@@ -1,6 +1,6 @@
 package com.bluckham.dao;
 
-import com.bluckham.model.Blog;
+import com.bluckham.dto.Blog;
 import com.bluckham.util.Constants;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
@@ -20,15 +20,15 @@ public class WebScraper {
 
     // TODO
     // Hard coded query values based on testing
-    public String getRandomRecipe(@NotNull Blog blog) {
+    public String getRandomRecipe(@NotNull Blog blogDTO) {
         Document document = null;
         Set<String> recipeSet = new HashSet<>();
         var rand = new Random(System.currentTimeMillis());
-        switch (blog.getName().toLowerCase(Locale.ROOT)) {
+        switch (blogDTO.getName().toLowerCase(Locale.ROOT)) {
             case "hot for food":
                 try {
                     document =
-                            Jsoup.connect(blog.getUrl()).data("s", "seitan").userAgent(Constants.CHROME).timeout(Constants.DEFAULT_TIMEOUT).get();
+                            Jsoup.connect(blogDTO.getUrl()).data("s", "seitan").userAgent(Constants.CHROME).timeout(Constants.DEFAULT_TIMEOUT).get();
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, e.getMessage());
                     System.exit(1);
@@ -56,7 +56,7 @@ public class WebScraper {
             case "minimalist baker":
                 try {
                     document =
-                            Jsoup.connect(blog.getUrl()).data("s", "seitan").userAgent(Constants.CHROME).timeout(Constants.DEFAULT_TIMEOUT).get();
+                            Jsoup.connect(blogDTO.getUrl()).data("s", "seitan").userAgent(Constants.CHROME).timeout(Constants.DEFAULT_TIMEOUT).get();
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, e.getMessage());
                     System.exit(1);
